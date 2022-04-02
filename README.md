@@ -17,4 +17,4 @@ find favorites/
 copy cookie to set.yaml
 
 
-![alt text](https://github.com/phillychi3/nhentai-favorites]/blob/main/image/csv.png?raw=true)
+![alt text](https://github.com/phillychi3/nhentai-favorites/blob/main/image/csv.png?raw=true)
