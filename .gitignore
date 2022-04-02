@@ -1,0 +1,6 @@
+*.part
+*.pyc
+*.log
+set.yaml
+tag.json
+output.csv

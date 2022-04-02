@@ -1,0 +1,6 @@
+PyYAML == 5.4.1
+bs4 
+fake_useragent == 0.1.11
+gevent == 21.1.2
+progress == 1.6
+requests == 2.27.1
