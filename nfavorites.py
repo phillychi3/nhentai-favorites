@@ -27,6 +27,25 @@ now = 1
 allnumbers = []
 allnames = []
 alltags = []
+ua = fake_useragent.UserAgent()
+useragent = ua.random
+
+# request
+def wtfcloudflare(url,method="get",data=None):
+    session = requests.Session()
+    session.headers = {
+        'Referer': "https://nhentai.net/login/",
+        'User-Agent': "",
+        'Cookie': cookie,
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+    }
+    if method == "get":
+        r = session.get(url)
+    elif method == "post":
+        r = session.post(url,data=data)
+    return r
+
 
 
 class gettagonline(threading.Thread):
@@ -35,22 +54,22 @@ class gettagonline(threading.Thread):
         self.number = number
         self.queue = queue
 
-    def run(self):
-        while self.queue.qsize() > 0:
-            num = self.queue.get()
-            # print("get %d: %s" % (self.number, num))
-            ua = fake_useragent.UserAgent()
-            useragent = ua.random
-            headers = {
-                'user-agent': useragent
-            }
-            r = requests.get(apiurl + num, headers=headers)
-            data = r.json()
-            ctag = []
-            for i in enumerate(data['tags']):
-                ctag.append(i[1]['name'])
-            alltags.append(ctag)
-            time.sleep(random.uniform(0.5, 1))
+    # def run(self):
+    #     while self.queue.qsize() > 0:
+    #         num = self.queue.get()
+    #         # print("get %d: %s" % (self.number, num))
+    #         ua = fake_useragent.UserAgent()
+    #         useragent = ua.random
+    #         headers = {
+    #             'user-agent': useragent
+    #         }
+    #         r = requests.get(apiurl + num, headers=headers)
+    #         data = r.json()
+    #         ctag = []
+    #         for i in enumerate(data['tags']):
+    #             ctag.append(i[1]['name'])
+    #         alltags.append(ctag)
+    #         time.sleep(random.uniform(0.5, 1))
 
 
 set1 = input("請問要使用離線資料嗎?(y/n)(默認為否)")
@@ -75,13 +94,7 @@ else:
 
 spinner = PixelSpinner('抓取資料中...')
 while True:
-    ua = fake_useragent.UserAgent()
-    useragent = ua.random
-    headers = {
-        'user-agent': useragent,
-        'cookie': cookie
-    }
-    data = requests.get(f"{url}?page={now}", headers=headers)
+    data = wtfcloudflare(f"{url}?page={now}")
     soup = BeautifulSoup(data.text, 'html.parser')
     book = soup.find_all("div", class_='gallery-favorite')
     if book == []:
