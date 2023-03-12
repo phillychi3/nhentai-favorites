@@ -1,21 +1,18 @@
-import gevent.monkey
-
-gevent.monkey.patch_all()
-import csv
-import json
-import os
-import queue
-import random
-import threading
-import time
-
-import fake_useragent
-import requests
-import yaml
-from bs4 import BeautifulSoup
-from progress.spinner import PixelSpinner
-
 from gettags import get_tags
+from progress.spinner import PixelSpinner
+from bs4 import BeautifulSoup
+import yaml
+import requests
+import fake_useragent
+import time
+import threading
+import random
+import queue
+import os
+import json
+import csv
+import gevent.monkey
+gevent.monkey.patch_all()
 
 
 with open('set.yaml', 'r') as f:
@@ -31,8 +28,9 @@ allnumbers = []
 allnames = []
 alltags = []
 
+
 class gettagonline(threading.Thread):
-    def __init__(self, queue,number):
+    def __init__(self, queue, number):
         threading.Thread.__init__(self)
         self.number = number
         self.queue = queue
@@ -40,7 +38,7 @@ class gettagonline(threading.Thread):
     def run(self):
         while self.queue.qsize() > 0:
             num = self.queue.get()
-            #print("get %d: %s" % (self.number, num))
+            # print("get %d: %s" % (self.number, num))
             ua = fake_useragent.UserAgent()
             useragent = ua.random
             headers = {
@@ -52,12 +50,11 @@ class gettagonline(threading.Thread):
             for i in enumerate(data['tags']):
                 ctag.append(i[1]['name'])
             alltags.append(ctag)
-            time.sleep(random.uniform(0.5,1))
-
+            time.sleep(random.uniform(0.5, 1))
 
 
 set1 = input("請問要使用離線資料嗎?(y/n)(默認為否)")
-if set1 == "y".lower() or  set1 == "yes".lower() :
+if set1 == "y".lower() or set1 == "yes".lower():
     if not os.path.isfile("tag.json"):
         print("沒有發現離線資料 抓取中請稍後...")
         get_tags()
@@ -90,8 +87,8 @@ while True:
     if book == []:
         break
     numbers = [t.get('data-id') for t in book]
-    names = [t.find('div',class_="caption").get_text() for t in book]
-    tags_ = [t.find('div',class_="gallery").get('data-tags') for t in book]
+    names = [t.find('div', class_="caption").get_text() for t in book]
+    tags_ = [t.find('div', class_="gallery").get('data-tags') for t in book]
     tags = []
     for i in tags_:
         tags__ = i.split(' ')
@@ -103,8 +100,7 @@ while True:
     spinner.next()
 
 
-
-if set1 == "y".lower() or  set1 == "yes".lower() :
+if set1 == "y".lower() or set1 == "yes".lower():
     with open('tag.json', 'r') as f:
         tagjson = json.load(f)
     for i in enumerate(allnumbers):
@@ -113,25 +109,24 @@ if set1 == "y".lower() or  set1 == "yes".lower() :
             if j in tagjson:
                 tagstr += tagjson[j] + ", "
 
-        table.append([i[1], allnames[i[0]], tagstr])    
+        table.append([i[1], allnames[i[0]], tagstr])
 else:
-    alltags=[] # 清空
+    alltags = []  # 清空
     get_tags_queue = queue.Queue()
     threads = []
     for i in allnumbers:
         get_tags_queue.put(i)
     for i in range(threadscount):
-        t = gettagonline(get_tags_queue,i)
+        t = gettagonline(get_tags_queue, i)
         t.start()
         threads.append(t)
     for t in threads:
         t.join()
-    
 
     for i in enumerate(allnumbers):
-        table.append([i[1], allnames[i[0]], alltags[i[0]]])    
+        table.append([i[1], allnames[i[0]], alltags[i[0]]])
 
 
-with open('output.csv', 'w', newline='',encoding="utf_8_sig") as csvfile:
-  writer = csv.writer(csvfile)
-  writer.writerows(table)
+with open('output.csv', 'w', newline='', encoding="utf_8_sig") as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerows(table)
