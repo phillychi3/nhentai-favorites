@@ -4,22 +4,27 @@ from bs4 import BeautifulSoup
 import yaml
 import requests
 import fake_useragent
-import time
-import threading
-import random
-import queue
+import locale
 import os
 import json
 import csv
 import gevent.monkey
 gevent.monkey.patch_all()
 
+if not os.path.isfile("set.yaml"):
+    with open('set.yaml', 'w') as f:
+        yaml.dump({"cookid": ""}, f)
+    print("Please edit set.yaml")
+    exit()
 
 with open('set.yaml', 'r') as f:
     cookie = yaml.load(f, Loader=yaml.CLoader)["cookid"]
+    if cookie == "":
+        print("Please edit set.yaml")
+        exit()
 # setting
-url = "https://nhentai.net/favorites/"
-apiurl = "https://nhentai.net/api/gallery/"
+URL = "https://nhentai.net/favorites/"
+APIURL = "https://nhentai.net/api/gallery/"
 table = [
     ["id", "name", "tags"]
 ]
@@ -29,6 +34,30 @@ allnames = []
 alltags = []
 ua = fake_useragent.UserAgent()
 useragent = ua.random
+locate = locale.getdefaultlocale()[0]
+if locate == "zh_TW":
+    language = {
+        "nodata": "沒有發現離線資料 抓取中請稍後...",
+        "nodata2": "抓取完畢",
+        "usedata": "使用離線資料",
+        "getdata": "抓取資料中...",
+    }
+else:
+    language = {
+        "nodata": "No offline data found, please wait a moment...",
+        "nodata2": "Done",
+        "usedata": "Use offline data",
+        "getdata": "Getting data...",
+    }
+
+def banner():
+    data = """            _           _        _         ___  _         
+ _ __   ___| |__  _ __ | |_ __ _(_)       / __\/_\/\   /\ 
+| '_ \ / _ \ '_ \| '_ \| __/ _` | |_____ / _\ //_\\ \ / / 
+| | | |  __/ | | | | | | || (_| | |_____/ /  /  _  \ V /  
+|_| |_|\___|_| |_|_| |_|\__\__,_|_|     \/   \_/ \_/\_/   
+                                                          """
+    print(data)
 
 # request
 def wtfcloudflare(url,method="get",data=None):
@@ -46,55 +75,15 @@ def wtfcloudflare(url,method="get",data=None):
         r = session.post(url,data=data)
     return r
 
+if not os.path.isfile("tag.json"):
+    print(language["nodata"])
+    get_tags()
+    print(language["nodata2"])
+print(language["usedata"])
 
-
-class gettagonline(threading.Thread):
-    def __init__(self, queue, number):
-        threading.Thread.__init__(self)
-        self.number = number
-        self.queue = queue
-
-    # def run(self):
-    #     while self.queue.qsize() > 0:
-    #         num = self.queue.get()
-    #         # print("get %d: %s" % (self.number, num))
-    #         ua = fake_useragent.UserAgent()
-    #         useragent = ua.random
-    #         headers = {
-    #             'user-agent': useragent
-    #         }
-    #         r = requests.get(apiurl + num, headers=headers)
-    #         data = r.json()
-    #         ctag = []
-    #         for i in enumerate(data['tags']):
-    #             ctag.append(i[1]['name'])
-    #         alltags.append(ctag)
-    #         time.sleep(random.uniform(0.5, 1))
-
-
-set1 = input("請問要使用離線資料嗎?(y/n)(默認為否)")
-if set1 == "y".lower() or set1 == "yes".lower():
-    if not os.path.isfile("tag.json"):
-        print("沒有發現離線資料 抓取中請稍後...")
-        get_tags()
-        print("抓取完畢")
-    print("使用離線資料")
-else:
-    print("使用線上資料")
-    threadscount = input("請輸入要使用幾個線程(默認為5 不可超過10)")
-    if threadscount == "":
-        threadscount = 5
-    else:
-        try:
-            threadscount = int(threadscount)
-            if threadscount > 10:
-                threadscount = 10
-        except:
-            threadscount = 5
-
-spinner = PixelSpinner('抓取資料中...')
+spinner = PixelSpinner(language["getdata"])
 while True:
-    data = wtfcloudflare(f"{url}?page={now}")
+    data = wtfcloudflare(f"{URL}?page={now}")
     soup = BeautifulSoup(data.text, 'html.parser')
     book = soup.find_all("div", class_='gallery-favorite')
     if book == []:
@@ -113,31 +102,17 @@ while True:
     spinner.next()
 
 
-if set1 == "y".lower() or set1 == "yes".lower():
-    with open('tag.json', 'r') as f:
-        tagjson = json.load(f)
-    for i in enumerate(allnumbers):
-        tagstr = ""
-        for j in alltags[i[0]]:
-            if j in tagjson:
-                tagstr += tagjson[j] + ", "
 
-        table.append([i[1], allnames[i[0]], tagstr])
-else:
-    alltags = []  # 清空
-    get_tags_queue = queue.Queue()
-    threads = []
-    for i in allnumbers:
-        get_tags_queue.put(i)
-    for i in range(threadscount):
-        t = gettagonline(get_tags_queue, i)
-        t.start()
-        threads.append(t)
-    for t in threads:
-        t.join()
+with open('tag.json', 'r') as f:
+    tagjson = json.load(f)
+for i in enumerate(allnumbers):
+    tagstr = ""
+    for j in alltags[i[0]]:
+        if j in tagjson:
+            tagstr += tagjson[j] + ", "
 
-    for i in enumerate(allnumbers):
-        table.append([i[1], allnames[i[0]], alltags[i[0]]])
+    table.append([i[1], allnames[i[0]], tagstr])
+
 
 
 with open('output.csv', 'w', newline='', encoding="utf_8_sig") as csvfile:

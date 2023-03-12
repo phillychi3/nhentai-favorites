@@ -1,24 +1,42 @@
-import gevent.monkey
-gevent.monkey.patch_all()
-import json
-
-import fake_useragent
-import requests
 from bs4 import BeautifulSoup
+import requests
+import fake_useragent
+import json
+import yaml
 
-url = "https://nhentai.net/tags/"
+
+URL = "https://nhentai.net/tags/"
+ua = fake_useragent.UserAgent()
+useragent = ua.random
+
+with open('set.yaml', 'r') as f:
+    cookie = yaml.load(f, Loader=yaml.CLoader)["cookid"]
+    if cookie == "":
+        print("Please edit set.yaml")
+        exit()
+def wtfcloudflare(url,method="get",data=None):
+    session = requests.Session()
+    session.headers = {
+        'Referer': "https://nhentai.net/login/",
+        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+        'Cookie': cookie,
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+    }
+    if method == "get":
+        r = session.get(url)
+    elif method == "post":
+        r = session.post(url,data=data)
+    return r
+
 def get_tags():
     now = 1
     tagjson = {}
 
     while True:
-        ua = fake_useragent.UserAgent()
-        useragent = ua.random
-        headers = {
-            'user-agent': useragent
-        }
-        data = requests.get(f"{url}?page={now}", headers=headers)
+        data = wtfcloudflare(f"{URL}?page={now}")
         soup = BeautifulSoup(data.text, 'html.parser')
+        print(data.text)
         tags = soup.find_all("a", class_='tag')
         if tags == []:
             break
