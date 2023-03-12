@@ -1,24 +1,17 @@
 from bs4 import BeautifulSoup
 import requests
-import fake_useragent
 import json
 import yaml
 
 
 URL = "https://nhentai.net/tags/"
-ua = fake_useragent.UserAgent()
-useragent = ua.random
 
-with open('set.yaml', 'r') as f:
-    cookie = yaml.load(f, Loader=yaml.CLoader)["cookid"]
-    if cookie == "":
-        print("Please edit set.yaml")
-        exit()
-def wtfcloudflare(url,method="get",data=None):
+
+def wtfcloudflare(url, method="get", useragent=None, cookie=None, data=None):
     session = requests.Session()
     session.headers = {
         'Referer': "https://nhentai.net/login/",
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+        'User-Agent': useragent,
         'Cookie': cookie,
         'Accept-Language': 'en-US,en;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br',
@@ -26,15 +19,23 @@ def wtfcloudflare(url,method="get",data=None):
     if method == "get":
         r = session.get(url)
     elif method == "post":
-        r = session.post(url,data=data)
+        r = session.post(url, data=data)
     return r
 
+
 def get_tags():
+    with open('set.yaml', 'r') as f:
+        cookie = yaml.load(f, Loader=yaml.CLoader)["cookid"]
+        useragent = yaml.load(f, Loader=yaml.CLoader)["useragent"]
+        if cookie == "":
+            print("Please edit set.yaml")
+            exit()
     now = 1
     tagjson = {}
 
     while True:
-        data = wtfcloudflare(f"{URL}?page={now}")
+        data = wtfcloudflare(f"{URL}?page={now}",
+                             useragent=useragent, cookie=cookie)
         soup = BeautifulSoup(data.text, 'html.parser')
         print(data.text)
         tags = soup.find_all("a", class_='tag')
@@ -49,6 +50,9 @@ def get_tags():
         for i in enumerate(tagnumber):
             tagjson[i[1]] = tagnames[i[0]]
         now += 1
+    if tagjson == {}:
+        print("something wrong with your cookie or useragent")
+        exit()
     with open('tag.json', 'w') as f:
         json.dump(tagjson, f)
     return
