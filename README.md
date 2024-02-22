@@ -1,20 +1,24 @@
 # nhentai-favorites
 
-### how to use?
+## how to use?
 
 `pip install -r ".\requirements.txt"`  
-open nfavorites.py and it will close and generate set.yaml  
-open set.yaml and enter your cookie and useragent  
+open `nfavorites.py` and it will close and generate set.yaml  
+open `set.yaml` and enter your cookie and useragent  
 final open nfavorites.py again and it will generate csv file if everything is ok
 
-### how to get my cookie?
+## how to get my cookie?
 
-open https://nhentai.net/favorites/  
+open <https://nhentai.net/favorites/>  
 open developer tools (F12)  
 switch to network tab  
 find favorites/ and click it  
-find cookie and useragent in request headers
+find cookie and useragent in request headers  
 
+## if something goes wrong in gettags
+
+rename `example_tag.json` to `tag.json`  
+rerun `nfavorites.py`  
 
 ![alt text](https://github.com/phillychi3/nhentai-favorites/blob/main/image/nhentai_cookie_anduseranegt.png?raw=true)
 
