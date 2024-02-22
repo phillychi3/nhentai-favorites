@@ -25,8 +25,9 @@ def wtfcloudflare(url, method="get", useragent=None, cookie=None, data=None):
 
 def get_tags():
     with open('set.yaml', 'r') as f:
-        cookie = yaml.load(f, Loader=yaml.CLoader)["cookid"]
-        useragent = yaml.load(f, Loader=yaml.CLoader)["useragent"]
+        data = yaml.load(f, Loader=yaml.CLoader)
+        cookie = data["cookid"]
+        useragent = data["useragent"]
         if cookie == "":
             print("Please edit set.yaml")
             exit()
@@ -37,7 +38,6 @@ def get_tags():
         data = wtfcloudflare(f"{URL}?page={now}",
                              useragent=useragent, cookie=cookie)
         soup = BeautifulSoup(data.text, 'html.parser')
-        print(data.text)
         tags = soup.find_all("a", class_='tag')
         if tags == []:
             break
@@ -49,12 +49,14 @@ def get_tags():
             tagnumber.append(fixnum)
         for i in enumerate(tagnumber):
             tagjson[i[1]] = tagnames[i[0]]
+        print(f"page {now} done")
         now += 1
     if tagjson == {}:
         print("something wrong with your cookie or useragent")
         exit()
     with open('tag.json', 'w') as f:
         json.dump(tagjson, f)
+    print("tag.json saved")
     return
 
 
