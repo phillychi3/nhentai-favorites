@@ -40,6 +40,8 @@ if locate == "zh_TW":
         "usedata": "使用離線資料",
         "getdata": "抓取資料中...",
         "403": "403 錯誤，可能被 cloudflare 阻擋，請檢查 cookie 是否正確",
+        "nologin": "未登入，請先登入",
+        "done": "完成"
     }
 else:
     language = {
@@ -48,16 +50,18 @@ else:
         "usedata": "Use offline data",
         "getdata": "Getting data...",
         "403": "403 error, maby block by cloudflare , please check if the cookie is correct",
+        "nologin": "Not login, please login first",
+        "done": "Done"
     }
 
 
 def banner():
-    data = """            _           _        _         ___  _
- _ __   ___| |__  _ __ | |_ __ _(_)       / __\/_\/\   /\
-| '_ \ / _ \ '_ \| '_ \| __/ _` | |_____ / _\ //_\\ \ / /
-| | | |  __/ | | | | | | || (_| | |_____/ /  /  _  \ V /
-|_| |_|\___|_| |_|_| |_|\__\__,_|_|     \/   \_/ \_/\_/
-                                                          """
+    data = r"               _           _        _         ___  _ \
+    _ __   ___| |__  _ __ | |_ __ _(_)        / __\/_\/\   /\ \
+    | '_ \ / _ \ '_ \| '_ \| __/ _` | |_____ / _\ //_\\ \ / / \
+    | | | |  __/ | | | | | | || (_| | |_____/ /  /  _  \ V /  \
+    |_| |_|\___|_| |_|_| |_|\__\__,_|_|     \/   \_/ \_/\_/   \
+                                                            "
     print(data)
 
 # request
@@ -94,10 +98,12 @@ if not os.path.isfile("tag.json"):
     get_tags()
     print(language["nodata2"])
 print(language["usedata"])
-
 spinner = PixelSpinner(language["getdata"])
 while True:
     data = wtfcloudflare(f"{URL}?page={now}")
+    if "Abandon all hope, ye who enter here" in data.text:
+        print(language["nologin"])
+        exit()
     soup = BeautifulSoup(data.text, 'html.parser')
     book = soup.find_all("div", class_='gallery-favorite')
     if book == []:
@@ -130,3 +136,4 @@ for i in enumerate(allnumbers):
 with open('output.csv', 'w', newline='', encoding="utf_8_sig") as csvfile:
     writer = csv.writer(csvfile)
     writer.writerows(table)
+print(language["done"])
