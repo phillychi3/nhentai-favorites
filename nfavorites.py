@@ -73,13 +73,14 @@ def wtfcloudflare(url, method="get", data=None):
         'Referer': "https://nhentai.net/login/",
         'User-Agent': useragent,
         'Cookie': cookie,
-        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6',
         'Accept-Encoding': 'gzip, deflate, br',
     }
     if method == "get":
         r = session.get(url)
     elif method == "post":
         r = session.post(url, data=data)
+    r.encoding = 'utf-8'
     return r
 
 
