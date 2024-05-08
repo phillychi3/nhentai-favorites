@@ -74,7 +74,7 @@ def wtfcloudflare(url, method="get", data=None):
         'User-Agent': useragent,
         'Cookie': cookie,
         'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6',
-        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Encoding': 'gzip, deflate',
     }
     if method == "get":
         r = session.get(url)
